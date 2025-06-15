@@ -1,0 +1,69 @@
+package in.sp.backend;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+	public class edit extends HttpServlet {
+	    private static final long serialVersionUID = 1L;
+
+	    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	        // Set content type
+	        response.setContentType("text/html;charset=UTF-8");
+	        PrintWriter out = response.getWriter();
+
+	        // Get parameters
+	        String oldUsername = request.getParameter("oldUsername"); 
+	        String oldPassword = request.getParameter("oldPassword"); 
+
+	        String newUsername = request.getParameter("username");
+	        String newPassword = request.getParameter("password");
+	        String gender = request.getParameter("gender");
+	        String ageStr = request.getParameter("age");
+
+	        if (newUsername == null || newPassword == null ||  oldUsername == null || oldPassword == null) {
+	            out.println("<h3>Missing parameters!</h3>");
+	            return;
+	        }
+
+	        try {
+	           
+
+	            Class.forName("com.mysql.cj.jdbc.Driver");
+	            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", "root")) {
+	                String sql = "UPDATE Student SET username=?, password=?,  WHERE username=? AND password=?";
+	                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+	                    stmt.setString(1, newUsername);
+	                    stmt.setString(2, newPassword);
+	                    stmt.setString(3, oldUsername);
+	                    stmt.setString(4, oldPassword);
+
+	                    int rowsUpdated = stmt.executeUpdate();
+	                    if (rowsUpdated > 0) {
+	                        out.println("<h3>Update successful!</h3>");
+	                    } else {
+	                        out.println("<h3>No matching record found to update.</h3>");
+	                    }
+	                    out.println("<p><a href='Studentdata'>Go back to Studentdata</a></p>");
+	                }
+	            }
+	        } catch (NumberFormatException e) {
+	            out.println("<h3>Invalid age format!</h3>");
+	        } catch (Exception e) {
+	            throw new ServletException("DB connection problem.", e);
+	        }
+	    }
+
+	    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	        doPost(request, response);
+	    }
+	}
