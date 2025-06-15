@@ -14,7 +14,6 @@ import java.sql.ResultSet;
 /**
  * Servlet implementation class displayadd
  */
-@WebServlet("/displayadd")
 public class displayadd extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
