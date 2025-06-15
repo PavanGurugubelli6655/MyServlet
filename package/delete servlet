@@ -1,0 +1,64 @@
+package in.sp.backend;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+
+public class delete extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public delete() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+		 RequestDispatcher dispatcher = request.getRequestDispatcher("/Studentdata");
+		    dispatcher.forward(request, response);
+	}
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Set response content type
+        response.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        if (username == null || password == null) {
+            out.println("<h3>Missing username or password parameter!</h3>");
+            return;
+        }
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "root", "root")) {
+                String sql = "DELETE FROM Student WHERE username = ? AND password = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setString(1, username);
+                    stmt.setString(2, password);
+                    int rowsAffected = stmt.executeUpdate();
+
+                    if (rowsAffected > 0) {
+                        out.println("<h3>Student record deleted successfully.</h3>");
+                    } else {
+                        out.println("<h3>No matching student found for deletion.</h3>");
+                    }
+                    out.println("<p><a href='Studentdata'>Go back to  Studentdata</a></p>");
+                }
+               
+            }
+        } catch (Exception e) {
+            throw new ServletException("DB connection problem.", e);
+        }
+        }}
