@@ -1,0 +1,114 @@
+package in.sp.backend;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class Resgiterservlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	private static final String query="insert into Student(username,password,email) values (?,?,?)";
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.sendRedirect("index.html"); 
+	}
+
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		response.setContentType("text/html;charset=UTF-8");
+		PrintWriter pw = null; 
+
+		String Username = request.getParameter("name");
+		String Password = request.getParameter("password");
+		String email = request.getParameter("email");
+	
+		
+		
+		try {
+			Age = Integer.parseInt(request.getParameter("age"));
+		} catch(NumberFormatException e) {
+			pw = response.getWriter(); 
+			pw.println("<html><body>");
+            pw.println("<h2>Error: Age must be a valid number.</h2>");
+            pw.println("<p><a href='index.html'>Go back to registration</a></p>");
+            pw.println("</body></html>");
+            return;
+		}
+
+		Connection con = null;
+		PreparedStatement ps = null;
+
+		try {
+			
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch(ClassNotFoundException cnf) {
+			pw = response.getWriter(); 
+			cnf.printStackTrace();
+            pw.println("<h1>Driver Not Found: " + cnf.getMessage() + "</h1>");
+			return; 
+		}
+
+		try {
+			
+			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/db","root","root");
+			ps = con.prepareStatement(query);
+			
+			ps.setString(1, Username);
+			ps.setString(2, Password);
+			ps.setInt(3, email); 
+	
+			
+			int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                
+                response.sendRedirect("LoginServlet?registration=success");
+                return; 
+            } else {
+                
+                pw = response.getWriter(); 
+                pw.println("<html><body>");
+                pw.println("<h2>Registration Failed. No data was inserted.</h2>");
+                pw.println("<p><a href='index.html'>Go back to registration</a></p>");
+                pw.println("</body></html>");
+                return;
+            }
+		} catch(SQLException se) {
+			pw = response.getWriter();
+			se.printStackTrace();
+			pw.println("<html><body>");
+			pw.println("<h1>SQL Error: " + se.getMessage() + "</h1>");
+		
+			if (se.getErrorCode() == 1062) { 
+                pw.println("<h2>Error: Username '" + Username + "' already exists. Please choose a different one.</h2>");
+            }
+			pw.println("<p><a href='index.html'>Go back to registration</a></p>");
+			pw.println("</body></html>");
+			
+		} catch(Exception e) { 
+			pw = response.getWriter(); 
+            e.printStackTrace();
+            pw.println("<html><body>");
+            pw.println("<h1>An unexpected error occurred: " + e.getMessage() + "</h1>");
+            pw.println("<p><a href='index.html'>Go back to registration</a></p>");
+            pw.println("</body></html>");
+            return; 
+        } finally {
+            
+            try {
+                if (ps != null) ps.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                e.printStackTrace(); 
+            }
+            
+		}
+	}
+}
